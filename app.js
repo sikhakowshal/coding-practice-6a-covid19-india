@@ -167,22 +167,19 @@ app.put("/districts/:districtId/", async (request, response) => {
 //API TO GET STATS OF A STATE BASED ON STATE_ID
 app.get("/states/:stateId/stats/", async (request, response) => {
   const { stateId } = request.params;
-  const getStatsQuery = `
-        SELECT cases, cured, active, deaths
+  const getStateStatsQuery = `
+        SELECT SUM(cases), SUM(cured), SUM(active), SUM(deaths)
         FROM district
         WHERE state_id = ${stateId};
     `;
 
-  const convertDbObjectToResponseObject = (dbObject) => {
-    return {
-      totalCases: dbObject.cases,
-      totalCured: dbObject.cured,
-      totalActive: dbObject.active,
-      totalDeaths: dbObject.deaths,
-    };
-  };
-  const stateStatsObject = await db.get(getStatsQuery);
-  response.send(convertDbObjectToResponseObject(stateStatsObject));
+  const stats = await db.get(getStateStatsQuery);
+  response.send({
+    totalCases: stats["SUM(cases)"],
+    totalCured: stats["SUM(cured)"],
+    totalActive: stats["SUM(active)"],
+    totalDeaths: stats["SUM(deaths)"],
+  });
 });
 
 //API TO GET STATE NAME BASED ON DISTRICT_ID
